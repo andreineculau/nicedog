@@ -226,7 +226,7 @@ function Run()
 </html>        
         <?php
        } else {
-        echo 'Oops';       
+         call_user_func_array('r500' , $_SERVER['REQUEST_METHOD']);  
        }
     }
 
