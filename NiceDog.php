@@ -30,7 +30,7 @@ define('__DEBUG__',false);
  * Controller
  */
 class C {
-    var $layout = true;
+    var $layout = false;
     var $layout_tamplate = 'views/layout.php';
     var $headers;
     
