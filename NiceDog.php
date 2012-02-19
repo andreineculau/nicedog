@@ -24,27 +24,27 @@ THE SOFTWARE.
 */
 
 
-define('__DEBUG__',true);
+$NICEDOG_DEBUG = false;
 
 /*
  * Controller
  */
 class C {
-    var $layout = true;
+    var $layout = false;
     var $layout_tamplate = 'views/layout.php';
     var $headers;
-    
+
     /* Render function return php rendered in a variable */
     public function render($file)
     {
         if ($this->layout==false){
-            return $this->open_template($file); 
+            return $this->open_template($file);
         } else {
-           $this->content = $this->open_template($file); 
-           return $this->open_template($this->layout_tamplate); 
+           $this->content = $this->open_template($file);
+           return $this->open_template($this->layout_tamplate);
         }
     }
-    
+
     /* Open template to render and return php rendered in a variable using ob_start/ob_end_clean */
     private function open_template($name)
     {
@@ -54,7 +54,7 @@ class C {
             if (count($vars)>0)
                 foreach($vars as $key => $value){
                     $$key = $value;
-                }        
+                }
             require($name);
         } else {
             throw new Exception('View ['.$name.'] Not Found');
@@ -62,15 +62,15 @@ class C {
         $out = ob_get_contents();
         ob_end_clean();
         return $out;
-    }   
-    
+    }
+
     /* Add information in header */
     public function header($text){
         $this->headers[] = $text;
-    }    
-    
-    /* 
-       Redirect page to annother place using header, 
+    }
+
+    /*
+       Redirect page to annother place using header,
        $now indicates that dispacther will not wait all process
     */
     public function redirect($url,$now=false)
@@ -78,8 +78,8 @@ class C {
         if(!$now)
         $this->header("Location: {$url}");
         else header("Location: {$url}");
-    } 
-    
+    }
+
 }
 
 /*
@@ -88,14 +88,14 @@ class C {
 class NiceDog {
     var $routes = array();
     static private $instance = NULL ;
-   
+
     function __construct()
     {
         if (isset($_GET['url']))
             $this->url =trim( $_GET['url'], '/');
         else $this->url = '';
     }
-      
+
     /* Singleton */
     public function getInstance()
       {
@@ -104,14 +104,14 @@ class NiceDog {
                 self::$instance = new NiceDog();
         }
              return self::$instance;
-       }   
+       }
 
     /* Add url to routes */
     public function add_url($rule, $klass, $klass_method, $http_method = 'GET')
     {
         $this->routes[] = array('/^' . str_replace('/','\/',$rule) . '$/', $klass,$klass_method,$http_method);
     }
-    
+
     /* Process requests and dispatch */
     public function dispatch()
     {
@@ -120,21 +120,21 @@ class NiceDog {
                 $matches = $this->parse_urls_args($matches);//Only declared variables in url regex
                 $klass = new $conf[1]();
                 ob_start();
-                call_user_func_array(array($klass , $conf[2]),$matches);  
+                call_user_func_array(array($klass , $conf[2]),$matches);
                 $out = ob_get_contents();
-                ob_end_clean();  
+                ob_end_clean();
                 if (count($klass->headers)>0){
                     foreach($klass->headers as $header){
                         header($header);
                     }
-                } 
-                print $out;                             
+                }
+                print $out;
                 exit();//Argh! Its not pretty, but usefull...
-            }    
+            }
         }
         call_user_func_array('r404' , array($_SERVER['REQUEST_METHOD']));
-    }   
-    
+    }
+
     /* Parse url arguments */
     private function parse_urls_args($matches)
     {
@@ -148,43 +148,43 @@ class NiceDog {
         return $new_matches;
     }
 }
- 
+
 /*
  *  New routes,  just sugar!
- *  R('','Test','index','GET'); turns: 
+ *  R('','Test','index','GET'); turns:
  *  R('')->controller('test')->action('index')->on('GET');
  * Thanks to:  Rafael S. Souza <rafael.ssouza [__at__] gmail.com>
  */
- 
+
 function R($pattern){
        return new Route($pattern);
 }
 class Route{
     var $pattern;
-    var $controller;    
+    var $controller;
     var $action;
     var $http_method = 'GET';
     function __construct($pattern){
         $this->pattern = $pattern;
         return $this;
     }
-    
+
     function controller($controller){
         $this->controller = $controller;
         return $this;
     }
-    
+
     function action($action){
         $this->action = $action;
         return $this;
     }
-    
+
     function on($http_method){
         $this->http_method = $http_method;
         $this->bind();
         return $this;
     }
-    
+
     function bind(){
         $router = NiceDog::getInstance()->add_url($this->pattern,$this->controller,$this->action,$this->http_method);
     }
@@ -198,7 +198,7 @@ function Run()
     try {
         NiceDog::getInstance()->dispatch();
     } catch (Exception $e) {
-        if (__DEBUG__==true) {
+        if ($NICEDOG_DEBUG==true) {
         ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -223,10 +223,10 @@ function Run()
         <?php debug_print_backtrace (); ?>
         </pre>
     </body>
-</html>        
+</html>
         <?php
        } else {
-        echo 'Oops';       
+         call_user_func_array('r500' , array($_SERVER['REQUEST_METHOD']));
        }
     }
 
